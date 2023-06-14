@@ -84,7 +84,7 @@ def main():
 
         for idx, img_sample in enumerate(sample):
             img = Image.fromarray(img_sample.cpu().numpy()).convert("RGB")
-            img_name = "%05d.png" % (idx + ch_idx + 1)
+            img_name = "%s.png" % (os.path.basename(img_paths[idx]).split('.')[0])
             img.save(os.path.join(img_save_path, img_name))
 
         logger.log(f"created {ch_idx + len(sample)} samples")
