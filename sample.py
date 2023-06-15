@@ -65,7 +65,8 @@ def main():
     while ch_idx < len(src_img_paths):
         model_kwargs = {}
         img_paths = src_img_paths[ch_idx:ch_idx+batch_size]
-        model_kwargs["y"] = [img_pre_pros(img_path, cfg['image_size']) for img_path in img_paths]
+        model_kwargs["y"] = [torch.tensor(img_pre_pros(img_path, cfg['image_size'])) for img_path in img_paths]
+        model_kwargs["y"] = torch.stack(model_kwargs["y"]).to(dist_util.dev())
 
         sample_fn = (
             diffusion.p_sample_loop if not cfg['use_ddim'] else diffusion.ddim_sample_loop

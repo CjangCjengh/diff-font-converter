@@ -568,7 +568,7 @@ class UNetWithStyEncoderModel(nn.Module):
     def forward(self, x, timesteps, y):
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
-        img_emb = self.image_encoder(x)
+        img_emb = self.image_encoder(y)
 
         emb = emb + img_emb
 
