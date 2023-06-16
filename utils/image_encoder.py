@@ -278,21 +278,21 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
 
 
 class ContentEncoder(nn.Module):
-    def __init__(self, n_res, norm, act, pad, use_sn=False):
+    def __init__(self, model_channels, n_res, norm, act, pad, use_sn=False):
         super(ContentEncoder, self).__init__()
         print("Init ContentEncoder")
 
         self.model = nn.ModuleList()
-        self.model.append(ResBlocks(n_res, 512, norm=norm, act=act, pad_type=pad, use_sn=use_sn))
+        self.model.append(ResBlocks(n_res, model_channels*4, norm=norm, act=act, pad_type=pad, use_sn=use_sn))
         self.model = nn.Sequential(*self.model)
-        self.dcn1 = ModulatedDeformConvPack(3, 64, kernel_size=(7, 7), stride=1, padding=3, groups=1, deformable_groups=1).cuda()
-        self.dcn2 = ModulatedDeformConvPack(64, 128, kernel_size=(4, 4), stride=2, padding=1, groups=1, deformable_groups=1).cuda()
-        self.dcn3 = ModulatedDeformConvPack(128, 256, kernel_size=(4, 4), stride=2, padding=1, groups=1, deformable_groups=1).cuda()
-        self.dcn4 = ModulatedDeformConvPack(256, 512, kernel_size=(4, 4), stride=2, padding=1, groups=1, deformable_groups=1).cuda()
-        self.IN1 = nn.InstanceNorm2d(64)
-        self.IN2 = nn.InstanceNorm2d(128)
-        self.IN3 = nn.InstanceNorm2d(256)
-        self.IN4 = nn.InstanceNorm2d(512)
+        self.dcn1 = ModulatedDeformConvPack(3, model_channels//2, kernel_size=(7, 7), stride=1, padding=3, groups=1, deformable_groups=1).cuda()
+        self.dcn2 = ModulatedDeformConvPack(model_channels//2, model_channels, kernel_size=(4, 4), stride=2, padding=1, groups=1, deformable_groups=1).cuda()
+        self.dcn3 = ModulatedDeformConvPack(model_channels, model_channels*2, kernel_size=(4, 4), stride=2, padding=1, groups=1, deformable_groups=1).cuda()
+        self.dcn4 = ModulatedDeformConvPack(model_channels*2, model_channels*4, kernel_size=(4, 4), stride=2, padding=1, groups=1, deformable_groups=1).cuda()
+        self.IN1 = nn.InstanceNorm2d(model_channels//2)
+        self.IN2 = nn.InstanceNorm2d(model_channels)
+        self.IN3 = nn.InstanceNorm2d(model_channels*2)
+        self.IN4 = nn.InstanceNorm2d(model_channels*4)
         self.activation = nn.ReLU(inplace=True)
 
     def forward(self, x):

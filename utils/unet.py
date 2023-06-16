@@ -415,7 +415,7 @@ class UNetWithStyEncoderModel(nn.Module):
             linear(time_embed_dim, time_embed_dim),
         )
 
-        self.content_encoder = ContentEncoder(2, 'in', 'relu', 'reflect')
+        self.content_encoder = ContentEncoder(model_channels, 2, 'in', 'relu', 'reflect')
 
         ch = input_ch = int(channel_mult[0] * model_channels)
         self.input_blocks = nn.ModuleList(
