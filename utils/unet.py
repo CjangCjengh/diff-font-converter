@@ -18,7 +18,7 @@ from .nn import (
     normalization,
     timestep_embedding,
 )
-from .image_encoder import ImageEncoder
+from .image_encoder import ContentEncoder
 
 
 class AttentionPool2d(nn.Module):
@@ -415,7 +415,7 @@ class UNetWithStyEncoderModel(nn.Module):
             linear(time_embed_dim, time_embed_dim),
         )
 
-        self.image_encoder = ImageEncoder(time_embed_dim)
+        self.content_encoder = ContentEncoder(2, 'in', 'relu', 'reflect')
 
         ch = input_ch = int(channel_mult[0] * model_channels)
         self.input_blocks = nn.ModuleList(
@@ -568,17 +568,23 @@ class UNetWithStyEncoderModel(nn.Module):
     def forward(self, x, timesteps, y):
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
-        img_emb = self.image_encoder(y)
-
-        emb = emb + img_emb
+        img_embs = self.content_encoder(y)
 
         h = x.type(self.dtype)
         for module in self.input_blocks:
             h = module(h, emb)
+            for img_emb in img_embs:
+                if h.shape == img_emb.shape:
+                    h = h + img_emb
+                    break
             hs.append(h)
         h = self.middle_block(h, emb)
         for module in self.output_blocks:
             h = torch.cat([h, hs.pop()], dim=1)
             h = module(h, emb)
+            for img_emb in img_embs:
+                if h.shape == img_emb.shape:
+                    h = h + img_emb
+                    break
         h = h.type(x.dtype)
         return self.out(h)  # zt_theta
