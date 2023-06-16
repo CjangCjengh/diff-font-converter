@@ -18,7 +18,7 @@ from .nn import (
     normalization,
     timestep_embedding,
 )
-from .image_encoder import ContentEncoder
+from .content_encoder import ContentEncoder
 
 
 class AttentionPool2d(nn.Module):
