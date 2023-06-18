@@ -415,6 +415,9 @@ class UNetWithStyEncoderModel(nn.Module):
             linear(time_embed_dim, time_embed_dim),
         )
 
+        self.component_emb = nn.Embedding(445, 4)
+        self.component_proj = nn.Linear(445 * 4, time_embed_dim)
+
         self.content_encoder = ContentEncoder(model_channels, 2, 'in', 'relu', 'reflect')
 
         ch = input_ch = int(channel_mult[0] * model_channels)
@@ -565,9 +568,14 @@ class UNetWithStyEncoderModel(nn.Module):
         self.middle_block.apply(convert_module_to_f32)
         self.output_blocks.apply(convert_module_to_f32)
 
-    def forward(self, x, timesteps, y):
+    def forward(self, x, timesteps, y, z=None):
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
+        if z is not None:
+            z = z.reshape(-1, 445, 1)
+            z = (z * self.component_emb.weight).flatten(1)
+            z = self.component_proj(z)
+            emb = emb + z
         img_embs = self.content_encoder(y)
 
         h = x.type(self.dtype)

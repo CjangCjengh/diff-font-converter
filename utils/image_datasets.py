@@ -19,12 +19,23 @@ def load_data(
     deterministic=False,
     random_crop=False,
     random_flip=False,
+    component_path=None,
 ):
     if not source_dir or not target_dir:
         raise ValueError("unspecified data directory")
     
     source_files = _list_image_files_recursively(source_dir)
     target_files = _list_image_files_recursively(target_dir)
+    
+    if component_path:
+        component_dict = {}
+        with open(component_path, 'r', encoding='utf-8') as f:
+            for line in f.readlines():
+                line = line.strip().split(' ')
+                char = line[0]
+                component = [int(i) for i in line[1:]]
+                component_dict[char] = component
+            
 
     dataset = ImageDataset(
         image_size,
@@ -34,6 +45,7 @@ def load_data(
         num_shards=MPI.COMM_WORLD.Get_size(),
         random_crop=random_crop,
         random_flip=random_flip,
+        component_dict=component_dict,
     )
     if deterministic:
         loader = DataLoader(
@@ -69,6 +81,7 @@ class ImageDataset(Dataset):
         num_shards=1,
         random_crop=False,
         random_flip=True,
+        component_dict=None,
     ):
         super().__init__()
         self.resolution = resolution
@@ -78,6 +91,7 @@ class ImageDataset(Dataset):
         self.image_pairs = image_pairs[shard:][::num_shards]
         self.random_crop = random_crop
         self.random_flip = random_flip
+        self.component_dict = component_dict
 
     def __len__(self):
         return len(self.image_pairs)
@@ -109,6 +123,13 @@ class ImageDataset(Dataset):
 
         out_dict = {}
         out_dict['y'] = np.transpose(arr1, [2, 0, 1])
+
+        if self.component_dict:
+            char = chr(int(os.path.basename(target_path).split('.')[0],16))
+            if char in self.component_dict:
+                out_dict['z'] = np.array(self.component_dict[char], dtype=np.float32)
+            else:
+                out_dict['z'] = np.zeros(445, dtype=np.float32)
 
         return np.transpose(arr2, [2, 0, 1]), out_dict
 

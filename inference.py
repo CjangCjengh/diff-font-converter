@@ -37,6 +37,16 @@ def main():
     img_save_path = cfg['img_save_path']
     source_dir = cfg['source_dir']
     batch_size = cfg['batch_size']
+    component_path=cfg['component_path']
+
+    if component_path:
+        component_dict = {}
+        with open(component_path, 'r', encoding='utf-8') as f:
+            for line in f.readlines():
+                line = line.strip().split(' ')
+                char = line[0]
+                component = [int(i) for i in line[1:]]
+                component_dict[char] = component
 
     dist_util.setup_dist()
 
@@ -67,6 +77,15 @@ def main():
         img_paths = src_img_paths[ch_idx:ch_idx+batch_size]
         model_kwargs["y"] = [torch.tensor(img_pre_pros(img_path, cfg['image_size'])) for img_path in img_paths]
         model_kwargs["y"] = torch.stack(model_kwargs["y"]).to(dist_util.dev())
+        if component_path:
+            for img_path in img_paths:
+                model_kwargs["z"] = []
+                char = chr(int(os.path.basename(img_path).split('.')[0],16))
+                if char in component_dict:
+                    model_kwargs["z"].append(torch.tensor(component_dict[char]))
+                else:
+                    model_kwargs["z"].append(torch.zeros(445, dtype=torch.float32))
+            model_kwargs["z"] = torch.stack(model_kwargs["z"]).to(dist_util.dev())
 
         sample_fn = (
             diffusion.p_sample_loop if not cfg['use_ddim'] else diffusion.ddim_sample_loop

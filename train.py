@@ -45,6 +45,7 @@ def main():
         target_dir=cfg['target_dir'],
         batch_size=cfg['batch_size'],
         image_size=cfg['image_size'],
+        component_path=cfg['component_path'],
     )
     
     logger.log("training...")

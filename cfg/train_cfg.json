@@ -12,5 +12,6 @@
     "save_interval": 1000,
     "train_step": 420000,
     "attention_resolutions": "40, 20, 10",
-    "model_save_dir": "./trained_models"
+    "model_save_dir": "./trained_models",
+    "component_path": "./components.txt"
 }

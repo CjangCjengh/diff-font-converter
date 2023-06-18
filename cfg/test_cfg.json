@@ -11,5 +11,6 @@
     "timestep_respacing": "ddim25",
     "model_path": "./trained_models/model001000.pt",
     "source_dir": "./test_img",
-    "img_save_path": "./result"
+    "img_save_path": "./result",
+    "component_path": "./components.txt"
 }
