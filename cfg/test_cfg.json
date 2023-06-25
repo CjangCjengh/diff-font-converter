@@ -1,5 +1,6 @@
 {
     "dropout": 0.1,
+    "num_fonts": 1,
     "diffusion_steps": 1000,
     "noise_schedule": "linear",
     "image_size": 128,
@@ -11,5 +12,6 @@
     "timestep_respacing": "ddim25",
     "model_path": "./trained_models/model001000.pt",
     "source_dir": "./test_img",
+    "nth_font": 0,
     "img_save_path": "./result"
 }

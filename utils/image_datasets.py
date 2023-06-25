@@ -23,8 +23,15 @@ def load_data(
     if not source_dir or not target_dir:
         raise ValueError("unspecified data directory")
     
-    source_files = _list_image_files_recursively(source_dir)
-    target_files = _list_image_files_recursively(target_dir)
+    source_files = []
+    for d in source_dir:
+        source_files.extend(_list_image_files_recursively(d))
+    target_files = []
+    for i, d in enumerate(target_dir):
+        files = _list_image_files_recursively(d)
+        logger.log(f"found {len(files)} files in {d}")
+        for f in files:
+            target_files.append((f, i))
 
     dataset = ImageDataset(
         image_size,
@@ -34,6 +41,7 @@ def load_data(
         num_shards=MPI.COMM_WORLD.Get_size(),
         random_crop=random_crop,
         random_flip=random_flip,
+        multi_font=len(target_dir) > 1,
     )
     if deterministic:
         loader = DataLoader(
@@ -69,21 +77,29 @@ class ImageDataset(Dataset):
         num_shards=1,
         random_crop=False,
         random_flip=True,
+        multi_font=False,
     ):
         super().__init__()
         self.resolution = resolution
-        source_dict = {int(os.path.basename(f).split(".")[0],16):f for f in source_paths}
-        target_dict = {int(os.path.basename(f).split(".")[0],16):f for f in target_paths}
-        image_pairs = [(source_dict[k],target_dict[k]) for k in source_dict.keys() if k in target_dict.keys()]
+        source_dict = {}
+        for f in source_paths:
+            k = int(os.path.basename(f).split(".")[0],16)
+            if k not in source_dict:
+                source_dict[k] = [f]
+            else:
+                source_dict[k].append(f)
+        image_pairs = [(source_dict[k],f,i) for f,i in target_paths if int(os.path.basename(f).split(".")[0],16) in source_dict]
         self.image_pairs = image_pairs[shard:][::num_shards]
         self.random_crop = random_crop
         self.random_flip = random_flip
+        self.multi_font = multi_font
 
     def __len__(self):
         return len(self.image_pairs)
 
     def __getitem__(self, idx):
-        source_path, target_path = self.image_pairs[idx]
+        source_path, target_path, style = self.image_pairs[idx]
+        source_path = random.choice(source_path)
         with open(source_path, "rb") as f:
             pil_image1 = Image.open(f)
             pil_image1.load()
@@ -109,6 +125,8 @@ class ImageDataset(Dataset):
 
         out_dict = {}
         out_dict['y'] = np.transpose(arr1, [2, 0, 1])
+        if self.multi_font:
+            out_dict['style'] = style
 
         return np.transpose(arr2, [2, 0, 1]), out_dict
 

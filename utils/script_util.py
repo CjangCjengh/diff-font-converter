@@ -34,6 +34,7 @@ def model_and_diffusion_defaults():
         resblock_updown=False,
         use_fp16=False,
         use_new_attention_order=False,
+        num_fonts=1,
     )
     res.update(diffusion_defaults())
     return res
@@ -43,6 +44,7 @@ def create_model_and_diffusion(
     learn_sigma,
     num_channels,
     num_res_blocks,
+    num_fonts,
     channel_mult,
     num_heads,
     num_head_channels,
@@ -66,6 +68,7 @@ def create_model_and_diffusion(
         image_size,
         num_channels,
         num_res_blocks,
+        num_fonts=num_fonts,
         channel_mult=channel_mult,
         learn_sigma=learn_sigma,
         use_checkpoint=use_checkpoint,
@@ -95,6 +98,7 @@ def create_model(
     image_size,
     num_channels,
     num_res_blocks,
+    num_fonts=1,
     channel_mult="",
     learn_sigma=False,
     use_checkpoint=False,
@@ -132,6 +136,7 @@ def create_model(
         model_channels=num_channels,
         out_channels=(3 if not learn_sigma else 6),
         num_res_blocks=num_res_blocks,
+        num_fonts=num_fonts,
         attention_resolutions=tuple(attention_ds),
         dropout=dropout,
         channel_mult=channel_mult,

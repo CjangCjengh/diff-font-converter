@@ -21,6 +21,7 @@ def main():
         cfg = json.load(f)
     cfg = create_cfg(cfg)
     train_step = cfg['train_step']
+    cfg['num_fonts'] = len(cfg['target_dir'])
 
     dist_util.setup_dist()
 

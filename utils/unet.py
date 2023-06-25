@@ -374,6 +374,7 @@ class UNetWithStyEncoderModel(nn.Module):
             model_channels,
             out_channels,
             num_res_blocks,
+            num_fonts,
             attention_resolutions,
             dropout=0,
             channel_mult=(1, 2, 4, 8),
@@ -414,6 +415,9 @@ class UNetWithStyEncoderModel(nn.Module):
             nn.SiLU(),
             linear(time_embed_dim, time_embed_dim),
         )
+
+        if num_fonts > 1:
+            self.style_embed = nn.Embedding(num_fonts, time_embed_dim)
 
         self.content_encoder = ContentEncoder(model_channels, 2, 'in', 'relu', 'reflect')
 
@@ -565,10 +569,14 @@ class UNetWithStyEncoderModel(nn.Module):
         self.middle_block.apply(convert_module_to_f32)
         self.output_blocks.apply(convert_module_to_f32)
 
-    def forward(self, x, timesteps, y):
+    def forward(self, x, timesteps, y, style=None):
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
         img_embs = self.content_encoder(y)
+
+        if style is not None:
+            style_emb = self.style_embed(style)
+            emb = emb + style_emb
 
         h = x.type(self.dtype)
         for module in self.input_blocks:

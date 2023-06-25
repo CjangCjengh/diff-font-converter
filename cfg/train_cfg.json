@@ -1,6 +1,6 @@
 {
-    "source_dir": "./font_img/Han-Nom Kai 1",
-    "target_dir": "./font_img/FOT-SkipStd-B",
+    "source_dir": ["./font_img/Han-Nom Kai 1"],
+    "target_dir": ["./font_img/FOT-SkipStd-B"],
     "diffusion_steps": 1000,
     "noise_schedule": "linear",
     "image_size": 128,

@@ -15,8 +15,16 @@ python font2img.py --font_path font_folder --save_path save_folder --img_size 12
 ---
 cfg/train_cfg.json:
 ```json
-"source_dir": "./save_folder/font_a",
-"target_dir": "./save_folder/font_b",
+"source_dir": [
+    "./save_folder/font_a",
+    "./save_folder/font_b",
+    "./save_folder/font_c"
+],
+"target_dir": [
+    "./save_folder/font_b",
+    "./save_folder/font_c",
+    "./save_folder/font_d"
+],
 "diffusion_steps": 1000,
 "noise_schedule": "linear",
 "image_size": 128,
@@ -43,6 +51,7 @@ mpiexec -n $NUM_GPUS python train.py --cfg_path cfg/train_cfg.json
 cfg/test_cfg.json:
 ```json
 "dropout": 0.1,
+"num_fonts": 1, // number of target_dir
 "diffusion_steps": 1000,
 "noise_schedule": "linear",
 "image_size": 128,
@@ -54,6 +63,7 @@ cfg/test_cfg.json:
 "timestep_respacing": "ddim25",
 "model_path": "./trained_models/model.pt",
 "source_dir": "./test_img",
+"nth_font": 0, // nth font in target_dir
 "img_save_path": "./result"
 ```
 Then run

@@ -37,6 +37,9 @@ def main():
     img_save_path = cfg['img_save_path']
     source_dir = cfg['source_dir']
     batch_size = cfg['batch_size']
+    num_fonts = cfg['num_fonts']
+    if num_fonts > 1:
+        nth_font = cfg['nth_font']
 
     dist_util.setup_dist()
 
@@ -67,6 +70,8 @@ def main():
         img_paths = src_img_paths[ch_idx:ch_idx+batch_size]
         model_kwargs["y"] = [torch.tensor(img_pre_pros(img_path, cfg['image_size'])) for img_path in img_paths]
         model_kwargs["y"] = torch.stack(model_kwargs["y"]).to(dist_util.dev())
+        if num_fonts > 1:
+            model_kwargs['style'] = torch.tensor([nth_font] * len(model_kwargs['y'])).to(dist_util.dev())
 
         sample_fn = (
             diffusion.p_sample_loop if not cfg['use_ddim'] else diffusion.ddim_sample_loop
