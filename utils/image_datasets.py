@@ -88,7 +88,11 @@ class ImageDataset(Dataset):
                 source_dict[k] = [f]
             else:
                 source_dict[k].append(f)
-        image_pairs = [(source_dict[k],f,i) for f,i in target_paths if int(os.path.basename(f).split(".")[0],16) in source_dict]
+        image_pairs = []
+        for f, i in target_paths:
+            k = int(os.path.basename(f).split(".")[0],16)
+            if k in source_dict:
+                image_pairs.append((source_dict[k],f,i))
         self.image_pairs = image_pairs[shard:][::num_shards]
         self.random_crop = random_crop
         self.random_flip = random_flip
